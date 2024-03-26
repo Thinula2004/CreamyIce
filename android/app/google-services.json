@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "110233516404",
+    "project_id": "creamy-ice-fda4a",
+    "storage_bucket": "creamy-ice-fda4a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110233516404:android:06650d5dd4027c3fa75421",
+        "android_client_info": {
+          "package_name": "com.thinula.creamy_ice"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMXtXbieqIKuoVY2w6GmQvitjw0TPOo54"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
