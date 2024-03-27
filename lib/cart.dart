@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:creamyice/elements.dart';
 import 'package:flutter/material.dart';
 
 class CartPage extends StatefulWidget {
@@ -14,11 +15,11 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appBar(context),
       backgroundColor: Color(0xFFFFEFFD),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          app_bar(context),
           SizedBox(
             height: 60,
           ),

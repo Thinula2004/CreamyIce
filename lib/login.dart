@@ -1,5 +1,12 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:creamyice/modals/user.dart';
+import 'package:creamyice/services/database_service.dart';
+import 'package:creamyice/services/navigation_functions.dart';
+import 'package:creamyice/services/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'elements.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -10,6 +17,9 @@ class LoginPage extends StatefulWidget {
 
 String username = "";
 String password = "";
+final DatabaseService dbs = new DatabaseService();
+final TextEditingController unameTEC = new TextEditingController();
+final TextEditingController passTEC = new TextEditingController();
 
 class _LoginPageState extends State<LoginPage> {
   @override
@@ -36,17 +46,9 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(
                       height: 60,
                     ),
-                    inputField("Username", false, (value) {
-                      setState(() {
-                        username = value;
-                      });
-                    }),
+                    inputField("Username", false, unameTEC),
                     SizedBox(height: 25),
-                    inputField("Password", true, (value) {
-                      setState(() {
-                        password = value;
-                      });
-                    }),
+                    inputField("Password", true, passTEC),
                     SizedBox(
                       height: 60,
                     ),
@@ -74,8 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, '/register', (route) => false);
+                          LoadPage(context, "register");
                         },
                         child: Text("Create an account?"),
                         style: ButtonStyle(
@@ -111,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
 TextStyle title1 = const TextStyle(
     fontFamily: "Poppins", fontSize: 70, color: Color(0xFFFF7AAE));
 
-Container inputField(String hint, bool hidden, Function(String) onChanged) {
+Container inputField(String hint, bool hidden, TextEditingController tec) {
   return Container(
       padding: EdgeInsets.all(0),
       width: 250,
@@ -122,7 +123,7 @@ Container inputField(String hint, bool hidden, Function(String) onChanged) {
           borderRadius: BorderRadius.circular(15)),
       child: Center(
         child: TextField(
-          onChanged: onChanged,
+          controller: tec,
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: hint,
@@ -146,37 +147,42 @@ Container inputField(String hint, bool hidden, Function(String) onChanged) {
       ));
 }
 
-void LogIn(BuildContext context) {
+void LogIn(BuildContext context) async {
+  username = unameTEC.text;
+  password = passTEC.text;
+
   if (username == "") {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Center(
-          child: Text(
-        "Username is empty",
-        style: TextStyle(
-            fontSize: 15, fontFamily: "Poppins_bold", letterSpacing: 2.0),
-      )),
-      backgroundColor: Color(0xFFFF7AAE),
-    ));
+    showSnackBar(context, "Username is empty");
   } else if (password == "") {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Center(
-          child: Text(
-        "Password is empty",
-        style: TextStyle(
-            fontSize: 15, fontFamily: "Poppins_bold", letterSpacing: 2.0),
-      )),
-      backgroundColor: Color(0xFFFF7AAE),
-    ));
+    showSnackBar(context, "Password is empty");
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Center(
-          child: Text(
-        "Log In Successful !",
-        style: TextStyle(
-            fontSize: 15, fontFamily: "Poppins_bold", letterSpacing: 2.0),
-      )),
-      backgroundColor: Color(0xFFFF7AAE),
-    ));
-    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    try {
+      // Call the get_user_snapshot function and await the result
+      QuerySnapshot<Map<String, dynamic>> snapshot =
+          await dbs.get_user_snapshot(username);
+
+      if (snapshot.docs.isEmpty) {
+        showSnackBar(context, "Invalid Username");
+        return;
+      }
+
+      // Get the first document from the snapshot
+      DocumentSnapshot<Map<String, dynamic>> userDocument = snapshot.docs.first;
+
+      // Convert the document snapshot to a User object
+      User user = User.fromSnapshot(userDocument);
+
+      if (user.password == password) {
+        unameTEC.clear();
+        passTEC.clear();
+        showSnackBar(context, "Login Successful");
+        Provider.of<UserProvider>(context, listen: false).setUser(user);
+        LoadPage(context, "home");
+      } else {
+        showSnackBar(context, "Invalid Password");
+      }
+    } catch (error) {
+      print("Error $error");
+    }
   }
 }

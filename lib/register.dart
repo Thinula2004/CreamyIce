@@ -1,6 +1,10 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:creamyice/elements.dart';
+import 'package:creamyice/modals/user.dart';
+import 'package:creamyice/services/database_service.dart';
+import 'package:creamyice/services/navigation_functions.dart';
 import 'package:flutter/material.dart';
-import 'login.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -15,6 +19,12 @@ String email = "";
 String fullname = "";
 String address = "";
 final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+final TextEditingController fnameTEC = TextEditingController();
+final TextEditingController emailTEC = TextEditingController();
+final TextEditingController addressTEC = TextEditingController();
+final TextEditingController unameTEC = TextEditingController();
+final TextEditingController passTEC = TextEditingController();
+final DatabaseService dbs = DatabaseService();
 
 class _RegisterPageState extends State<RegisterPage> {
   @override
@@ -39,35 +49,15 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(
                       height: 30,
                     ),
-                    inputField("Full Name", false, (value) {
-                      setState(() {
-                        fullname = value;
-                      });
-                    }),
+                    inputField("Full Name", false, fnameTEC),
                     SizedBox(height: 15),
-                    inputField("Email", false, (value) {
-                      setState(() {
-                        email = value;
-                      });
-                    }),
+                    inputField("Email", false, emailTEC),
                     SizedBox(height: 15),
-                    inputField("Address", false, (value) {
-                      setState(() {
-                        address = value;
-                      });
-                    }),
+                    inputField("Address", false, addressTEC),
                     SizedBox(height: 15),
-                    inputField("Username", false, (value) {
-                      setState(() {
-                        username = value;
-                      });
-                    }),
+                    inputField("Username", false, unameTEC),
                     SizedBox(height: 15),
-                    inputField("Password", true, (value) {
-                      setState(() {
-                        password = value;
-                      });
-                    }),
+                    inputField("Password", true, passTEC),
                     const SizedBox(
                       height: 30,
                     ),
@@ -79,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 (states) => Color(0xFFFF7AAE))),
                         onPressed: () {
                           setState(() {
-                            LogIn(context);
+                            Register(context);
                           });
                         },
                         child: const Text(
@@ -95,8 +85,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, '/login', (route) => false);
+                          LoadPage(context, "login");
                         },
                         child: Text("Already have an account?"),
                         style: ButtonStyle(
@@ -132,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage> {
 TextStyle title1 = const TextStyle(
     fontFamily: "Poppins", fontSize: 70, color: Color(0xFFFF7AAE));
 
-Container inputField(String hint, bool hidden, Function(String) onChanged) {
+Container inputField(String hint, bool hidden, TextEditingController tec) {
   return Container(
       padding: EdgeInsets.all(0),
       width: 280,
@@ -143,7 +132,7 @@ Container inputField(String hint, bool hidden, Function(String) onChanged) {
           borderRadius: BorderRadius.circular(20)),
       child: Center(
         child: TextField(
-          onChanged: onChanged,
+          controller: tec,
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: hint,
@@ -168,53 +157,59 @@ Container inputField(String hint, bool hidden, Function(String) onChanged) {
       ));
 }
 
-void LogIn(BuildContext context) {
+void Register(BuildContext context) async {
+  fullname = fnameTEC.text;
+  email = emailTEC.text;
+  address = addressTEC.text;
+  username = unameTEC.text;
+  password = passTEC.text;
+
+  bool existingUname;
+
+  QuerySnapshot<Map<String, dynamic>> snapshot =
+      await dbs.get_user_snapshot(username);
+
+  if (snapshot.docs.isEmpty) {
+    existingUname = false;
+  } else {
+    existingUname = true;
+  }
+
   if (fullname == "") {
-    snackBar(context, "Full Name is empty");
+    showSnackBar(context, "Full Name is empty");
     ;
   } else if (email == "") {
-    snackBar(context, "Email is empty");
+    showSnackBar(context, "Email is empty");
     ;
   } else if (address == "") {
-    snackBar(context, "Address is empty");
+    showSnackBar(context, "Address is empty");
     ;
   } else if (username == "") {
-    snackBar(context, "Username is empty");
+    showSnackBar(context, "Username is empty");
   } else if (password == "") {
-    snackBar(context, "Password is empty");
+    showSnackBar(context, "Password is empty");
   } else if (!emailRegex.hasMatch(email)) {
-    snackBar(context, "Invalid Email");
+    showSnackBar(context, "Invalid Email");
   } else if (username.length < 5) {
-    snackBar(context, "Username must atleast be 5 letters");
+    showSnackBar(context, "Username must atleast be 5 letters");
   } else if (password.length < 5) {
-    snackBar(context, "Password must atleast be 5 letters");
+    showSnackBar(context, "Password must atleast be 5 letters");
+  } else if (existingUname) {
+    showSnackBar(context, "Username already exists");
   } else {
-    snackBar(context, "Registration Successful");
-    print("Logged in with username : " +
-        username +
-        " and password : " +
-        password);
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    fnameTEC.clear();
+    emailTEC.clear();
+    addressTEC.clear();
+    unameTEC.clear();
+    passTEC.clear();
+    showSnackBar(context, "Registration Successful");
+    User user = User(
+        fullname: fullname,
+        email: email,
+        address: address,
+        username: username,
+        password: password);
+    dbs.addUser(user);
+    LoadPage(context, "login");
   }
-}
-
-ScaffoldFeatureController<SnackBar, SnackBarClosedReason> snackBar(
-    BuildContext context, String txt) {
-  return ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      duration: Duration(seconds: 1),
-      content: Center(
-        child: Text(
-          txt,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontFamily: "Poppins_bold",
-            letterSpacing: 2.0,
-          ),
-        ),
-      ),
-      backgroundColor: Color(0xFFFF7AAE),
-    ),
-  );
 }

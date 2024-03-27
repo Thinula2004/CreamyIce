@@ -1,164 +1,152 @@
-import 'dart:ui';
+import 'dart:math';
+
+import 'package:creamyice/elements.dart';
+import 'package:creamyice/modals/product.dart';
+import 'package:creamyice/services/database_service.dart';
+import 'package:creamyice/services/navigation_functions.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomePage extends StatelessWidget {
+  HomePage({Key? key}) : super(key: key);
 
-  @override
-  _HomePageState createState() => _HomePageState();
-}
+  final DatabaseService dbs = new DatabaseService();
 
-bool menuActive = false;
-
-class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appBar(context),
       backgroundColor: Color(0xFFFFEFFD),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            height: 110,
-            decoration: BoxDecoration(color: Color(0xFFFF7AAE)),
-            child: SafeArea(
-              child: Row(
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: SingleChildScrollView(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      width: 10,
+                    StreamBuilder<List<Product>>(
+                      stream: dbs.getProducts(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(child: Text('No products available'));
+                        }
+                        final products = snapshot.data!;
+                        final rowsCount = (products.length / 3).ceil();
+                        return Column(
+                          children: List.generate(rowsCount, (rowIndex) {
+                            final start = rowIndex * 3;
+                            final end = (rowIndex + 1) * 3;
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: products
+                                  .sublist(start, min(end, products.length))
+                                  .map((product) {
+                                return p_card(
+                                    context: context,
+                                    title: product.name,
+                                    price: product.price.toString(),
+                                    image: product.image,
+                                    id: product.id);
+                              }).toList(),
+                            );
+                          }),
+                        );
+                      },
                     ),
-                    Expanded(
-                        flex: 1,
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: 10.0),
-                          child: Container(
-                            child: Image.asset(
-                              "assets/logo.png",
-                              height: 60,
-                            ),
-                          ),
-                        )),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    const Expanded(
-                        flex: 4,
-                        child: Center(
-                          child: Text(
-                            "Creamy Ice",
-                            style: TextStyle(
-                                fontFamily: "Poppins_bold",
-                                fontSize: 35,
-                                color: Color(0xFFFFEFFD)),
-                          ),
-                        )),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                        flex: 1,
-                        child: Container(
-                          child: Center(
-                              child: IconButton(
-                            onPressed: ToggleMenu,
-                            icon: Image.asset(
-                              "assets/menu.png",
-                              height: 23,
-                            ),
-                          )),
-                        ))
-                  ]),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 1),
-            child: Expanded(
-              child: Wrap(
-                children: [
-                  p_card(),
-                  p_card(),
-                  p_card(),
-                  p_card(),
-                ],
+                  ],
+                ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
-}
 
-void ToggleMenu() {
-  menuActive != menuActive;
-}
-
-Padding p_card() {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 7),
-    child: Container(
-      width: 115,
-      height: 150,
-      decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.25), // Shadow color
-              spreadRadius: 3, // Spread radius
-              blurRadius: 5, // Blur radius
-              offset: Offset(0, 0), // Offset in x and y directions
-            )
-          ],
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(20))),
-      child: Padding(
-        padding: EdgeInsets.all(5),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 110,
-                height: 85,
-                child: Image.asset(
-                  "assets/ice1.png",
-                  width: 90,
-                ),
-              ),
-              Container(
-                width: 100,
-                height: 55,
-                child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Chocolate Ice Cream",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+  Padding p_card(
+      {required BuildContext context,
+      required String title,
+      required String price,
+      required String image,
+      required int id}) {
+    return Padding(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+        child: GestureDetector(
+          onTap: () {
+            LoadPage(context, "product", id);
+          },
+          child: Container(
+            width: 115,
+            height: 150,
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 5,
+                  blurRadius: 8,
+                  offset: Offset(0, 0),
+                )
+              ],
+              color: Color.fromARGB(255, 255, 255, 255),
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 110,
+                    height: 85,
+                    child: Image.asset(
+                      "assets/ice1.png",
+                      width: 90,
+                    ),
+                  ),
+                  Container(
+                    width: 120,
+                    height: 55,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             color: Color(0xFFFF7AAE),
                             fontSize: 9,
-                            fontFamily: "Poppins_bold"),
-                      ),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      Text(
-                        "Price : \$2.50",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+                            fontFamily: "Poppins_bold",
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Price : \$$price",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             color: Color(0xFF915086),
                             fontSize: 9,
-                            fontFamily: "Poppins_bold"),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      )
-                    ]),
-              )
-            ]),
-      ),
-    ),
-  );
+                            fontFamily: "Poppins_bold",
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ));
+  }
 }

@@ -1,5 +1,11 @@
 import 'dart:ui';
+import 'package:creamyice/elements.dart';
+import 'package:creamyice/modals/user.dart';
+import 'package:creamyice/services/database_service.dart';
+import 'package:creamyice/services/navigation_functions.dart';
+import 'package:creamyice/services/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -9,20 +15,30 @@ class ProfilePage extends StatefulWidget {
 }
 
 bool menuActive = false;
-String fname = "Thinula Hansana";
-String email = "thinulahansana1122@gmail.com";
-String address = "279/A, School Lane, Hanwella";
-String uname = "jerry";
+String fname = "";
+String email = "";
+String address = "";
+String uname = "";
+
+final DatabaseService dbs = new DatabaseService();
 
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    User? user = Provider.of<UserProvider>(context).user;
+    if (user != null) {
+      fname = user.fullname;
+      email = user.email;
+      address = user.address;
+      uname = user.username;
+    }
+
     return Scaffold(
+      appBar: appBar(context),
       backgroundColor: Color(0xFFFFEFFD),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          app_bar(context),
           SizedBox(
             height: 60,
           ),
@@ -228,12 +244,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
 void LogOut(BuildContext context) {
   print("Logged out");
-  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  Provider.of<UserProvider>(context, listen: false).setUser(null);
+  showSnackBar(context, "Log-out Successful");
+  LoadPage(context, "login");
 }
 
 void DelAcc(BuildContext context) {
   print("Account Deleted");
-  Navigator.pushNamedAndRemoveUntil(context, '/register', (route) => false);
+  Provider.of<UserProvider>(context, listen: false).setUser(null);
+  dbs.deleteUser(uname);
+  showSnackBar(context, "Account Deletion Successful");
+  LoadPage(context, "register");
 }
 
 TextStyle label01 = const TextStyle(
@@ -246,67 +267,6 @@ TextStyle label02 = const TextStyle(
 
 TextStyle title1 = const TextStyle(
     fontFamily: "Poppins_bold", fontSize: 30, color: Color(0xFFFF7AAE));
-
-Container app_bar(BuildContext context) {
-  return Container(
-    width: double.infinity,
-    height: 110,
-    decoration: BoxDecoration(color: Color(0xFFFF7AAE)),
-    child: SafeArea(
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 10,
-            ),
-            Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 10.0),
-                  child: Container(
-                    child: Image.asset(
-                      "assets/logo.png",
-                      height: 60,
-                    ),
-                  ),
-                )),
-            const SizedBox(
-              width: 10,
-            ),
-            const Expanded(
-                flex: 4,
-                child: Center(
-                  child: Text(
-                    "Creamy Ice",
-                    style: TextStyle(
-                        fontFamily: "Poppins_bold",
-                        fontSize: 35,
-                        color: Color(0xFFFFEFFD)),
-                  ),
-                )),
-            const SizedBox(
-              width: 10,
-            ),
-            Expanded(
-                flex: 1,
-                child: Container(
-                  child: Center(
-                      child: IconButton(
-                    onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                          context, '/register', (route) => false);
-                    },
-                    icon: Image.asset(
-                      "assets/menu.png",
-                      height: 23,
-                    ),
-                  )),
-                ))
-          ]),
-    ),
-  );
-}
 
 void ToggleMenu() {
   menuActive != menuActive;
