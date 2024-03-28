@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:creamyice/modals/cartitem.dart';
 import 'package:creamyice/modals/product.dart';
+import 'package:creamyice/modals/purchase.dart';
 import 'package:creamyice/modals/user.dart';
 
 const String USER_COLLECTION_REF = "users";
 const String PRODUCT_COLLECTION_REF = "products";
 const String CARTITEM_COLLECTION_REF = "cartitems";
+const String PURCHASES_COLLECTION_REF = 'purchases';
 
 class DatabaseService {
   final _firestore = FirebaseFirestore.instance;
@@ -13,6 +15,7 @@ class DatabaseService {
   late final CollectionReference _usersRef;
   late final CollectionReference _productsRef;
   late final CollectionReference _cartitemsRef;
+  late final CollectionReference _purchasesRef;
 
   DatabaseService() {
     _usersRef = _firestore.collection(USER_COLLECTION_REF).withConverter<User>(
@@ -34,6 +37,13 @@ class DatabaseService {
             fromFirestore: (snapshots, _) =>
                 CartItem.fromJson(snapshots.data()!),
             toFirestore: (cartitem, _) => cartitem.toJson());
+
+    _purchasesRef = _firestore
+        .collection(PURCHASES_COLLECTION_REF)
+        .withConverter<Purchase>(
+            fromFirestore: (snapshots, _) =>
+                Purchase.fromJson(snapshots.data()!),
+            toFirestore: (purchase, _) => purchase.toJson());
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>> get_user_snapshot(
@@ -76,6 +86,20 @@ class DatabaseService {
     }
   }
 
+  Future<String?> getProductName(int _pid) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('products')
+        .where('id', isEqualTo: _pid)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs.first['name'] as String;
+    } else {
+      return null;
+    }
+  }
+
   void addUser(User user) async {
     _usersRef.add(user);
   }
@@ -112,6 +136,20 @@ class DatabaseService {
         querySnapshot.docs.map((doc) => Product.fromSnapshot(doc)).toList());
   }
 
+  Stream<List<CartItem>> getCartitems(String username) {
+    return _cartitemsRef.where('username', isEqualTo: username).snapshots().map(
+        (querySnapshot) => querySnapshot.docs
+            .map((doc) => CartItem.fromSnapshot(doc))
+            .toList());
+  }
+
+  Stream<List<Purchase>> getPurchases(String username) {
+    return _purchasesRef.where('username', isEqualTo: username).snapshots().map(
+        (querySnapshot) => querySnapshot.docs
+            .map((doc) => Purchase.fromSnapshot(doc))
+            .toList());
+  }
+
   Future<QuerySnapshot<Map<String, dynamic>>> getProductSnapshot(int id) async {
     QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
         .instance
@@ -144,6 +182,19 @@ class DatabaseService {
       }
     } catch (error) {
       print("Error updating cart item: $error");
+    }
+  }
+
+  void deleteCartItem(String username, int pid) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection('cartitems')
+        .where('username', isEqualTo: username)
+        .where('pid', isEqualTo: pid)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      snapshot.docs.first.reference.delete();
     }
   }
 }

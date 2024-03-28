@@ -1,3 +1,4 @@
+import 'package:creamyice/purchase_history.dart';
 import 'package:creamyice/services/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,7 @@ import 'register.dart';
 import 'home.dart';
 import 'profile.dart';
 import 'cart.dart';
-import 'product.dart';
+
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -35,9 +36,10 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(),
         '/profile': (context) => const ProfilePage(),
         '/cart': (context) => const CartPage(),
+        '/purchases': (context) => const PurchasesPage()
       },
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: PurchasesPage(),
     );
   }
 }

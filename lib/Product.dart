@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:creamyice/elements.dart';
 import 'package:creamyice/modals/cartitem.dart';
 import 'package:creamyice/modals/product.dart';
 import 'package:creamyice/modals/user.dart';
-import 'package:creamyice/profile.dart';
 import 'package:creamyice/services/database_service.dart';
 import 'package:creamyice/services/user_provider.dart';
 import 'package:flutter/material.dart';

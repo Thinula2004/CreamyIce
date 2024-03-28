@@ -140,6 +140,7 @@ AppBar appBar(BuildContext context) {
               LoadPage(context, "cart");
               break;
             case 'Purchase History':
+              LoadPage(context, 'purchases');
               break;
 
             default:

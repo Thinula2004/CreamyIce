@@ -23,6 +23,11 @@ void LoadPage(BuildContext context, String page, [int? pid]) {
       page = "login";
     }
   }
+  if (page == "cart" || page == "purchases") {
+    if (user == null) {
+      page = "login";
+    }
+  }
 
   if (pid == null) {
     if (page == "profile") {

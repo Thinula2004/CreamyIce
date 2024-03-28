@@ -14,14 +14,13 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBar(context),
-      backgroundColor: Color(0xFFFFEFFD),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: SingleChildScrollView(
+        appBar: appBar(context),
+        backgroundColor: Color(0xFFFFEFFD),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -30,7 +29,9 @@ class HomePage extends StatelessWidget {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                          return Center(
+                              child: const CircularProgressIndicator(
+                                  color: Color(0xFFFF7AAE)));
                         }
                         if (snapshot.hasError) {
                           return Center(
@@ -65,11 +66,9 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   Padding p_card(
