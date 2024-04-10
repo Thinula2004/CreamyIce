@@ -14,67 +14,9 @@ void showSnackBar(BuildContext context, String msg) {
   ));
 }
 
-Container TopBar() {
-  return Container(
-    width: double.infinity,
-    height: 110,
-    decoration: const BoxDecoration(color: Color(0xFFFF7AAE)),
-    child: SafeArea(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 1,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 10.0),
-              child: Container(
-                child: Image.asset(
-                  "assets/logo.png",
-                  height: 60,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            flex: 4,
-            child: Center(
-              child: Text(
-                "Creamy Ice",
-                style: TextStyle(
-                  fontFamily: "Poppins_bold",
-                  fontSize: 35,
-                  color: Color(0xFFFFEFFD),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 1,
-            child: Container(
-              child: Center(
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Image.asset(
-                    "assets/menu.png",
-                    height: 23,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
 AppBar appBar(BuildContext context) {
   return AppBar(
-    toolbarHeight: 80,
+    toolbarHeight: 90,
     centerTitle: true,
     backgroundColor: Color(0xFFFF7AAE),
     leading: Padding(
@@ -89,7 +31,7 @@ AppBar appBar(BuildContext context) {
       "Creamy Ice",
       style: TextStyle(
         fontFamily: "Poppins_bold",
-        fontSize: 38,
+        fontSize: 40,
         color: Color(0xFFFFEFFD),
       ),
     ),
@@ -103,8 +45,8 @@ AppBar appBar(BuildContext context) {
         color: Color(0xFFFF7AAE),
         itemBuilder: (BuildContext context) {
           return {
-            'Profile': Icons.account_circle,
             'Home': Icons.shopping_bag,
+            'Profile': Icons.account_circle,
             'Cart': Icons.shopping_cart,
             'Purchase History': Icons.history,
           }.entries.map((entry) {
@@ -130,12 +72,13 @@ AppBar appBar(BuildContext context) {
         },
         onSelected: (String choice) {
           switch (choice) {
-            case 'Profile':
-              LoadPage(context, "profile");
-              break;
             case 'Home':
               LoadPage(context, "home");
               break;
+            case 'Profile':
+              LoadPage(context, "profile");
+              break;
+
             case 'Cart':
               LoadPage(context, "cart");
               break;

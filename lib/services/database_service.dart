@@ -38,12 +38,9 @@ class DatabaseService {
                 CartItem.fromJson(snapshots.data()!),
             toFirestore: (cartitem, _) => cartitem.toJson());
 
-    _purchasesRef = _firestore
-        .collection(PURCHASES_COLLECTION_REF)
-        .withConverter<Purchase>(
-            fromFirestore: (snapshots, _) =>
-                Purchase.fromJson(snapshots.data()!),
-            toFirestore: (purchase, _) => purchase.toJson());
+    _purchasesRef = _firestore.collection("purchases").withConverter<Purchase>(
+        fromFirestore: (snapshots, _) => Purchase.fromJson(snapshots.data()!),
+        toFirestore: (purchase, _) => purchase.toJson());
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>> get_user_snapshot(
@@ -102,6 +99,24 @@ class DatabaseService {
 
   void addUser(User user) async {
     _usersRef.add(user);
+  }
+
+  void addPurchase(String username, Purchase purchase) async {
+    _purchasesRef.add(purchase);
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection(CARTITEM_COLLECTION_REF)
+        .where('username', isEqualTo: username)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      snapshot.docs.forEach((doc) {
+        batch.delete(doc.reference);
+      });
+
+      await batch.commit();
+    }
   }
 
   void deleteUser(String username) async {
@@ -196,5 +211,29 @@ class DatabaseService {
     if (snapshot.docs.isNotEmpty) {
       snapshot.docs.first.reference.delete();
     }
+  }
+
+  void ResetPurchases(String username) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+        .instance
+        .collection(PURCHASES_COLLECTION_REF)
+        .where('username', isEqualTo: username)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      snapshot.docs.forEach((doc) {
+        batch.delete(doc.reference);
+      });
+
+      await batch.commit();
+    }
+  }
+
+  Future<int> GetPurchasesAmount() async {
+    int amount = 0;
+    QuerySnapshot snapshots = await _purchasesRef.get();
+    amount = snapshots.docs.length;
+    return amount;
   }
 }

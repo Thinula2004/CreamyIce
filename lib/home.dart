@@ -108,7 +108,7 @@ class HomePage extends StatelessWidget {
                     width: 110,
                     height: 85,
                     child: Image.asset(
-                      "assets/ice1.png",
+                      "assets/" + image,
                       width: 90,
                     ),
                   ),
